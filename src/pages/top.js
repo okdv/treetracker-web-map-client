@@ -98,11 +98,9 @@ function Top({ trees, planters, countries, organizations }) {
             <img src={search} alt="search" />
           </Box>
         </Box>
-        {false && ( // going to be replaced by search filter component
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Filter onFilter={handleFilter} />
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Filter onFilter={handleFilter} />
+        </Box>
         <Box>
           <FeaturedTreesSlider trees={trees} />
         </Box>
