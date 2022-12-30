@@ -52,6 +52,7 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
             // borderRadius: '40px 0 0 40px',
             position: 'absolute',
             borderRadius: ' 0 40px 40px 0',
+            border: '2px solid black',
             zIndex: 3,
             bottom: '47%',
             minWidth: '35px',
@@ -61,7 +62,7 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
             '& svg': {
               marginRight: -4,
             },
-            opacity: 0.4,
+            opacity: 0.9,
           }}
           variant="contained"
         >
@@ -94,7 +95,6 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
                 // boxShadow: '0px 2px 16px rgba(34, 38, 41, 0.15)',
                 // width: [152, 208],
                 overflow: 'initial',
-                flex: 1,
               }}
             >
               <CardMedia
@@ -109,12 +109,19 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
                   minWidth: [144, 208],
                 }}
               />
-              <CardContent>
+              <CardContent
+                sx={{
+                  p: 0,
+                  ':last-child': {
+                    p: 0,
+                  },
+                  mt: 5,
+                }}
+              >
                 <Typography
                   variant="h6"
                   sx={{
                     fontSize: '20px',
-                    marginTop: 4,
                   }}
                 >
                   Tree - {tree.id}
@@ -122,7 +129,7 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
                 <Typography
                   variant="body1"
                   sx={{
-                    marginTop: 1.5,
+                    marginTop: 1,
                   }}
                 >
                   {tree.species_name || tree.country_name || '---'}
@@ -139,6 +146,7 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
             right: 0,
             position: 'absolute',
             borderRadius: '40px 0 0 40px',
+            border: '2px solid black',
             zIndex: 3,
             bottom: '47%',
             minWidth: '35px',
@@ -148,7 +156,7 @@ function FeaturedTreesSlider({ trees, size = null, isMobile, link }) {
             '& svg': {
               marginLeft: -4,
             },
-            opacity: 0.4,
+            opacity: 0.9,
           }}
           variant="contained"
         >

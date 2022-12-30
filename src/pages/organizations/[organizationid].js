@@ -1,39 +1,24 @@
-import HomeIcon from '@mui/icons-material/Home';
-import ParkOutlinedIcon from '@mui/icons-material/ParkOutlined';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import {
-  Box,
-  Divider,
-  Grid,
-  useTheme,
-  useMediaQuery,
-  Typography,
-  Avatar,
-  SvgIcon,
-} from '@mui/material';
+import { Box, Divider, Grid, Typography, Avatar } from '@mui/material';
 import Portal from '@mui/material/Portal';
 import log from 'loglevel';
+import { marked } from 'marked';
 import moment from 'moment';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { useEffect } from 'react';
 import CustomWorldMap from 'components/CustomWorldMap';
 import FeaturedTreesSlider from 'components/FeaturedTreesSlider';
+import HeadTag from 'components/HeadTag';
 import PlanterQuote from 'components/PlanterQuote';
 import TreeSpeciesCard from 'components/TreeSpeciesCard';
-import CustomImageWrapper from 'components/common/CustomImageWrapper';
-import DrawerTitle from 'components/common/DrawerTitle';
 import { useDrawerContext } from 'context/DrawerContext';
 import { getOrganizationById, getOrgLinks } from 'models/api';
-import { makeStyles } from 'models/makeStyles';
 import ImpactSection from '../../components/ImpactSection';
-import PageWrapper from '../../components/PageWrapper';
 import ProfileAvatar from '../../components/ProfileAvatar';
 import ProfileCover from '../../components/ProfileCover';
 import VerifiedBadge from '../../components/VerifiedBadge';
-import BackButton from '../../components/common/BackButton';
 import Crumbs from '../../components/common/Crumbs';
 import CustomCard from '../../components/common/CustomCard';
+import Icon from '../../components/common/CustomIcon';
 import Info from '../../components/common/Info';
 import { useMobile } from '../../hooks/globalHooks';
 import CalendarIcon from '../../images/icons/calendar.svg';
@@ -41,51 +26,15 @@ import LocationIcon from '../../images/icons/location.svg';
 import PeopleIcon from '../../images/icons/people.svg';
 import TreeIcon from '../../images/icons/tree.svg';
 import imagePlaceholder from '../../images/image-placeholder.png';
-import orgBackground from '../../images/org-background.png';
 import SearchIcon from '../../images/search.svg';
-// import placeholder from '../../images/organizationsPlaceholder.png';
 import { useMapContext } from '../../mapContext';
 import * as pathResolver from '../../models/pathResolver';
-import * as utils from '../../models/utils';
-
-const useStyles = makeStyles()((theme) => ({
-  imgContainer: {
-    borderRadius: '16px',
-    position: 'relative',
-    img: {
-      borderRadius: '16px',
-    },
-    marginBottom: theme.spacing(4),
-    '&> img': {
-      width: '100%',
-      height: '100%',
-    },
-  },
-  logoContainer: {
-    backgroundColor: theme.palette.common.white,
-    position: 'absolute',
-    left: theme.spacing(4),
-    bottom: theme.spacing(4),
-    boxSizing: 'border-box',
-    padding: theme.spacing(5),
-    width: 108,
-    height: 108,
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    '&> img': {
-      width: '100%',
-    },
-  },
-}));
+import { getLocationString, getContinent, wrapper } from '../../models/utils';
 
 export default function Organization(props) {
-  log.warn('props:', props);
+  log.warn('props for org page:', props);
   const { organization, nextExtraIsEmbed } = props;
   const mapContext = useMapContext();
-  const { classes } = useStyles();
   const [isPlanterTab, setIsPlanterTab] = React.useState(true);
   // eslint-disable-next-line
   const [continent, setContinent] = React.useState(null);
@@ -99,7 +48,7 @@ export default function Organization(props) {
     const tree = organization?.featuredTrees?.trees[0];
     if (tree) {
       const { lat, lon } = tree;
-      const newContinent = await utils.getContinent(lat, lon);
+      const newContinent = await getContinent(lat, lon);
       setContinent(newContinent.name);
     }
   }
@@ -143,6 +92,7 @@ export default function Organization(props) {
 
   return (
     <>
+      <HeadTag title={`${name} - Organization`} />
       <Box
         sx={[
           {
@@ -178,18 +128,15 @@ export default function Organization(props) {
               ]}
             />
 
-            <SvgIcon
-              component={SearchIcon}
-              inheritViewBox
+            <Icon
+              icon={SearchIcon}
+              width={48}
+              height={48}
+              color="grey"
               sx={{
-                width: 48,
-                height: 48,
                 fill: 'transparent',
                 '& path': {
                   fill: 'grey',
-                },
-                '& rect': {
-                  stroke: 'grey',
                 },
               }}
             />
@@ -211,11 +158,19 @@ export default function Organization(props) {
             <Box sx={{ mt: 2 }}>
               <Info
                 iconURI={CalendarIcon}
-                info={`Organization since ${moment().format('MMMM DD, YYYY')}`}
+                info={`Organization since ${moment(
+                  organization?.created_at,
+                ).format('MMMM DD, YYYY')}`}
               />
             </Box>
             <Box sx={{ mt: 2 }}>
-              <Info iconURI={LocationIcon} info="Shirimatunda, Tanzania" />
+              <Info
+                iconURI={LocationIcon}
+                info={getLocationString(
+                  organization.country_name,
+                  organization.continent_name,
+                )}
+              />
             </Box>
             <Box
               sx={{
@@ -254,7 +209,13 @@ export default function Organization(props) {
                 />
               </Box>
               <Box sx={{ mt: 2 }}>
-                <Info iconURI={LocationIcon} info="Shirimatunda, Tanzania" />
+                <Info
+                  iconURI={LocationIcon}
+                  info={getLocationString(
+                    organization.country_name,
+                    organization.continent_name,
+                  )}
+                />
               </Box>
               <Box
                 sx={{
@@ -327,14 +288,14 @@ export default function Organization(props) {
               <CustomCard
                 handleClick={() => setIsPlanterTab(true)}
                 iconURI={TreeIcon}
-                sx={{
-                  width: 26,
-                  height: 34,
-                  '& path': {
-                    fill: ({ palette }) => palette.primary.main,
+                iconProps={{
+                  sx: {
+                    '& path': {
+                      fill: ({ palette }) => palette.primary.main,
+                    },
                   },
                 }}
-                title="Trees Planted"
+                title="Tree Captures Collected"
                 text={organization?.featuredTrees?.total || '---'}
                 disabled={!isPlanterTab}
               />
@@ -343,11 +304,11 @@ export default function Organization(props) {
               <CustomCard
                 handleClick={() => setIsPlanterTab(false)}
                 iconURI={PeopleIcon}
-                sx={{
-                  height: 36,
-                  width: 36,
-                  '& path': {
-                    fill: ({ palette }) => palette.text.primary,
+                iconProps={{
+                  sx: {
+                    '& path': {
+                      fill: ({ palette }) => palette.text.primary,
+                    },
                   },
                 }}
                 title="Hired Planters"
@@ -364,8 +325,12 @@ export default function Organization(props) {
           >
             <Box sx={{ mt: [0, 22] }}>
               <CustomWorldMap
-                totalTrees={organization?.featuredTrees?.trees.length}
-                con="af"
+                totalTrees={
+                  (organization?.featuredTrees?.total &&
+                    organization?.featuredTrees?.total) ||
+                  undefined
+                }
+                con={organization?.continent_name || 'af'}
               />
             </Box>
             <Typography
@@ -439,11 +404,13 @@ export default function Organization(props) {
                 location: 'Addis Ababa, Ethisa',
               },
             ].map((planter, i) => ( */}
-          {organization?.associatedPlanters?.planters?.map((planter, i) => (
-            <Box sx={{ mt: [6, 12] }} key={planter.name}>
-              <PlanterQuote planter={planter} reverse={i % 2 !== 0} />
-            </Box>
-          ))}
+          {organization?.associatedPlanters?.planters
+            ?.sort((e1) => (e1.about ? -1 : 1))
+            .map((planter, i) => (
+              <Box sx={{ mt: [6, 12] }} key={planter.name}>
+                <PlanterQuote planter={planter} reverse={i % 2 !== 0} />
+              </Box>
+            ))}
         </Box>
         <Box
           sx={{
@@ -461,13 +428,30 @@ export default function Organization(props) {
             About the Organization
           </Typography>
           <Typography variant="body2" mt={7}>
-            {organization.about || 'NO DATA YET'}
+            <Box
+              component="span"
+              dangerouslySetInnerHTML={{
+                __html: marked.parse(organization.about || 'NO DATA YET'),
+              }}
+            />
           </Typography>
           <Typography variant="h4" sx={{ mt: { xs: 10, md: 16 } }}>
             Mission
           </Typography>
           <Typography variant="body2" mt={7}>
-            {organization.mission || 'NO DATA YET'}
+            <Box
+              component="span"
+              sx={{
+                fontFamily: 'Lato',
+                fontWeight: 400,
+                fontSize: '20px',
+                lineHeight: '28px',
+                letterSpacing: '0.04em',
+              }}
+              dangerouslySetInnerHTML={{
+                __html: marked.parse(organization.mission || 'NO DATA YET'),
+              }}
+            />
           </Typography>
           <Divider
             varian="fullwidth"
@@ -498,16 +482,33 @@ export default function Organization(props) {
   );
 }
 
-export const getServerSideProps = utils.wrapper(async ({ params }) => {
+async function serverSideData(params) {
   const id = params.organizationid;
   const organization = await getOrganizationById(id);
   const orgLinks = await getOrgLinks(organization.links);
-  return {
-    props: {
-      organization: {
-        ...organization,
-        ...orgLinks,
-      },
+  const props = {
+    organization: {
+      ...organization,
+      ...orgLinks,
     },
   };
+  return props;
+}
+
+const getStaticProps = wrapper(async ({ params }) => {
+  const props = await serverSideData(params);
+  return {
+    props,
+    revalidate: Number(process.env.NEXT_CACHE_REVALIDATION_OVERRIDE) || 30,
+  };
 });
+
+// eslint-disable-next-line
+const getStaticPaths = async () => {
+  return {
+    paths: [],
+    fallback: 'blocking',
+  };
+};
+
+export { getStaticProps, getStaticPaths };

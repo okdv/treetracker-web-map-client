@@ -1,20 +1,19 @@
-import HomeIcon from '@mui/icons-material/Home';
-import { SvgIcon } from '@mui/material';
 import Box from '@mui/material/Box';
 import Portal from '@mui/material/Portal';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import log from 'loglevel';
 import React from 'react';
+import HeadTag from 'components/HeadTag';
 import SearchButton from 'components/SearchButton';
 import { getCountryLeaderboard, getFeaturedTrees } from 'models/api';
 import FeaturedPlantersSlider from '../components/FeaturedPlantersSlider';
 import FeaturedTreesSlider from '../components/FeaturedTreesSlider';
 import LeaderBoard from '../components/LeaderBoard';
-import Link from '../components/Link';
 // import SearchFilter from '../components/SearchFilter';
 import TagChips from '../components/TagChips';
 import Crumbs from '../components/common/Crumbs';
+import Icon from '../components/common/CustomIcon';
 import Filter from '../components/common/Filter';
 import { useFullscreen } from '../hooks/globalHooks';
 import Search from '../images/search.svg';
@@ -31,11 +30,11 @@ function Top(props) {
   const continentTags = [
     'Global',
     'Africa',
-    'Americas',
+    'Europe',
+    'North America',
     'Asia',
-    // 'Caribbean',
-    // 'Europe',
-    'Oceania',
+    'South America',
+    'Australia',
   ];
 
   const [continentTag, setContinentTag] = React.useState('Global');
@@ -58,7 +57,7 @@ function Top(props) {
       return;
     const fetchCountries = async () => {
       const data = await utils.requestAPI(
-        `/countries/leaderboard?continent=${continentTag}`,
+        `/countries/leaderboard/${continentTag}`,
       );
       setLeaderboardCountries(data.countries);
     };
@@ -86,6 +85,7 @@ function Top(props) {
 
   return (
     <>
+      <HeadTag title="Tree Spotlight" />
       <Box px={4} py={3} sx={{ maxWidth: '100%', boxSizing: 'border-box' }}>
         {!isFullscreen && false && (
           <Stack direction="row" justifyContent="flex-end" mb={6.125}>
@@ -119,65 +119,80 @@ function Top(props) {
               },
             ]}
           />
-          <SvgIcon
-            component={Search}
-            inheritViewBox
+          <Icon
+            icon={Search}
+            width={48}
+            height={48}
+            color="grey"
             sx={{
-              width: 48,
-              height: 48,
               fill: 'transparent',
               '& path': {
                 fill: 'grey',
               },
-              '& rect': {
-                stroke: 'grey',
-              },
             }}
           />
         </Box>
-        <Box
-          sx={{
-            mt: 8,
-          }}
-        >
-          <Typography variant="h4">Featured trees this week</Typography>
-        </Box>
-        {false && ( // going to be replaced by search filter component
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Filter onFilter={handleFilter} />
-          </Box>
+        {trees?.length > 0 && (
+          <>
+            <Box
+              sx={{
+                mt: 8,
+              }}
+            >
+              <Typography variant="h4">Featured trees this week</Typography>
+            </Box>
+            {false && ( // going to be replaced by search filter component
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Filter onFilter={handleFilter} />
+              </Box>
+            )}
+            <Box>
+              <FeaturedTreesSlider trees={trees} isMobile={isFullscreen} />
+            </Box>
+          </>
         )}
-        <Box>
-          <FeaturedTreesSlider trees={trees} isMobile={isFullscreen} />
-        </Box>
-        <Box sx={{ mt: [4, 8] }} />
-        <Typography variant="h4">Featured organizations this week</Typography>
-        <FeaturedPlantersSlider
-          link={(id) => `/organizations/${id}`}
-          color="primary"
-          planters={organizations}
-          isMobile={isFullscreen}
-        />
-        <Box
-          sx={{
-            mt: 8,
-          }}
-        >
-          <Typography variant="h4">Featured planters this week</Typography>
-        </Box>
-        <FeaturedPlantersSlider
-          link={(id) => `/planters/${id}`}
-          color="secondary"
-          planters={planters}
-          isMobile={isFullscreen}
-        />
-        <Typography variant="h4">Featured wallets this week</Typography>
-        <FeaturedPlantersSlider
-          link={(id) => `/wallets/${id}`}
-          color="secondary"
-          planters={wallets}
-          isMobile={isFullscreen}
-        />
+        {organizations.length > 0 && (
+          <>
+            <Box sx={{ mt: [4, 8] }} />
+            <Typography variant="h4">
+              Featured organizations this week
+            </Typography>
+            <FeaturedPlantersSlider
+              link={(id) => `/organizations/${id}`}
+              color="primary"
+              planters={organizations}
+              isMobile={isFullscreen}
+            />
+          </>
+        )}
+        {planters.length > 0 && (
+          <>
+            <Box
+              sx={{
+                mt: 8,
+              }}
+            >
+              <Typography variant="h4">Featured planters this week</Typography>
+            </Box>
+            <FeaturedPlantersSlider
+              link={(id) => `/planters/${id}`}
+              color="secondary"
+              planters={planters}
+              isMobile={isFullscreen}
+            />
+          </>
+        )}
+        {wallets.length > 0 && (
+          <>
+            <Typography variant="h4">Featured wallets this week</Typography>
+            <FeaturedPlantersSlider
+              link={(id) => `/wallets/${id}`}
+              color="secondary"
+              planters={wallets}
+              isMobile={isFullscreen}
+            />
+          </>
+        )}
         <Typography
           variant="h4"
           sx={{
@@ -231,7 +246,7 @@ function Top(props) {
   );
 }
 
-export async function getStaticProps() {
+async function serverSideData(params) {
   const [trees, countries, planters, organizations, wallets] =
     await Promise.all([
       getFeaturedTrees(), //
@@ -255,16 +270,31 @@ export async function getStaticProps() {
       })(),
     ]);
   return {
-    props: {
-      trees,
-      countries,
-      planters,
-      organizations,
-      wallets,
-    },
-    revalidate: 60,
+    trees,
+    countries,
+    planters,
+    organizations,
+    wallets,
   };
 }
+
+const getStaticProps = utils.wrapper(async ({ params }) => {
+  const props = await serverSideData(params);
+  return {
+    props,
+    revalidate: Number(process.env.NEXT_CACHE_REVALIDATION_OVERRIDE) || 30,
+  };
+});
+
+// // eslint-disable-next-line
+// const getStaticPaths = async () => {
+//   return {
+//     paths: [],
+//     fallback: 'blocking',
+//   };
+// }
+
+export { getStaticProps /* getStaticPaths */ };
 
 Top.isFloatingDisabled = true;
 export default Top;
